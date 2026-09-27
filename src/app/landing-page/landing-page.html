@@ -1,0 +1,171 @@
+<div class="landing-page">
+  <header class="landing-header">
+    <nav class="landing-nav">
+      <div class="brand-wrap">
+        <div class="brand-mark">C</div>
+        <div class="brand">Contabilistia</div>
+      </div>
+
+      <div class="nav-links">
+        <a href="#features">Funcionalidades</a>
+        <a href="#benefits">Benefícios</a>
+        <a href="#process">Como funciona</a>
+        <a [routerLink]="'/demo'">Demo</a>
+      </div>
+
+      <a class="nav-cta" [routerLink]="'/demo'">Solicitar demonstração</a>
+    </nav>
+  </header>
+
+  <main class="landing-main">
+    <section class="hero-section">
+      <div class="hero-copy">
+        <span class="eyebrow">IA para contabilidade</span>
+        <h1>Classificação fiscal inteligente para facturas e despesas.</h1>
+        <p>
+          A Contabilistia ajuda equipas financeiras a automatizar a triagem de documentos,
+          validar IVA, reduzir erros manuais e manter uma revisão clara por linha e por fornecedor.
+        </p>
+
+        <div class="hero-actions">
+          <a [routerLink]="'/demo'" class="primary-btn">Ver demonstração</a>
+          <button type="button" class="secondary-btn">Saiba mais</button>
+        </div>
+
+        <ul class="hero-stats">
+          <li>
+            <strong>80%</strong>
+            <span>menos tempo em triagem</span>
+          </li>
+          <li>
+            <strong>24/7</strong>
+            <span>processamento automatizado</span>
+          </li>
+          <li>
+            <strong>100%</strong>
+            <span>maior controlo fiscal</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="hero-panel">
+        <div class="mini-card">
+          <div class="mini-card-header">
+            <span class="label">Última classificação</span>
+            <span class="status-pill">OK</span>
+          </div>
+
+          <h3>Fatura de supermercado</h3>
+
+          <div class="mini-grid">
+            <div>
+              <small>Total</small>
+              <strong>€ 1.240,00</strong>
+            </div>
+            <div>
+              <small>IVA</small>
+              <strong>€ 142,00</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="mini-list">
+          <div class="mini-item">
+            <span>Classificação</span>
+            <strong>Concluída</strong>
+          </div>
+          <div class="mini-item">
+            <span>Revisão</span>
+            <strong>2 itens</strong>
+          </div>
+          <div class="mini-item">
+            <span>Conformidade</span>
+            <strong>Alta</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-bar" aria-label="Indicadores de confiança">
+      <span>Gestão documental</span>
+      <span>SNC</span>
+      <span>CIVA</span>
+      <span>IVA dedutível</span>
+      <span>Auditoria</span>
+    </section>
+
+    <section class="features-section" id="features">
+      <div class="section-heading">
+        <span class="eyebrow">Funcionalidades</span>
+        <h2>Uma plataforma pensada para controlo fiscal e produtividade.</h2>
+      </div>
+
+      <div class="features-grid">
+        <article class="feature-card">
+          <span class="feature-icon">⚡</span>
+          <h3>Triagem automática</h3>
+          <p>Analisa cada linha da fatura e sugere a classificação adequada com rapidez e consistência.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon">🧠</span>
+          <h3>IA orientada por regras</h3>
+          <p>Combina lógica fiscal, análise documental e revisão humana para reduzir erros e riscos.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon">📊</span>
+          <h3>Dashboard operacional</h3>
+          <p>Centraliza o histórico, filtros, ordenação e detalhe por documento num único painel.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="process-section" id="process">
+      <div class="section-heading">
+        <span class="eyebrow">Como funciona</span>
+        <h2>Do documento à decisão final em poucos passos.</h2>
+      </div>
+
+      <div class="process-grid">
+        <div class="process-card">
+          <span class="step-number">01</span>
+          <h3>Carrega</h3>
+          <p>Recebe as facturas e despesas diretamente do sistema ou de upload.</p>
+        </div>
+        <div class="process-card">
+          <span class="step-number">02</span>
+          <h3>Classifica</h3>
+          <p>Analisa fornecedores, valores, IVA e contexto fiscal por linha.</p>
+        </div>
+        <div class="process-card">
+          <span class="step-number">03</span>
+          <h3>Revisa</h3>
+          <p>Confirma os casos com alertas, mantém histórico e reduz esforço manual.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="benefits-section" id="benefits">
+      <div class="section-heading">
+        <span class="eyebrow">Benefícios</span>
+        <h2>Mais velocidade, rigor e controlo para a sua equipa.</h2>
+      </div>
+
+      <div class="benefits-grid">
+        <div class="benefit-box">
+          <h4>Redução de erros</h4>
+          <p>Evita falhas na classificação e na dedução de IVA com uma revisão estruturada.</p>
+        </div>
+        <div class="benefit-box">
+          <h4>Maior produtividade</h4>
+          <p>Automatiza tarefas repetitivas e liberta a equipa para focar em casos críticos.</p>
+        </div>
+        <div class="benefit-box">
+          <h4>Compliance fiscal</h4>
+          <p>Garante uma explicação clara para cada decisão, reforçando a transparência da auditoria.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
