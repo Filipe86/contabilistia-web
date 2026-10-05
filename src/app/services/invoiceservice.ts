@@ -22,6 +22,11 @@ export class InvoiceService {
         totalAmount: 845.4,
         totalVatSupported: 194.34,
         totalDeductibleVat: 194.34,
+        confidenceRate: 85,
+        status: 'suggested',
+        classificationReason: 'Average model confidence (85.00%) is between 50% and 85%.',
+        validationStatus: 'pending',
+        validatedAt: null,
         rawAiResponse: JSON.stringify({
           classified_lines: [
             {
@@ -32,6 +37,7 @@ export class InvoiceService {
               vat_rate: 23,
               deductible_vat_this_line: 158.7,
               review_alert: false,
+              confidence_rate: 95,
             },
             {
               original_description: 'Serviço de impressão',
@@ -41,6 +47,7 @@ export class InvoiceService {
               vat_rate: 23,
               deductible_vat_this_line: 35.64,
               review_alert: true,
+              confidence_rate: 75,
             },
           ],
         }),
@@ -56,5 +63,20 @@ export class InvoiceService {
     }).pipe(
       catchError(() => of(this.getFallbackInvoices()))
     );
+  }
+
+  analyzeInvoice(image: File): Observable<{ invoiceId: string }> {
+    const formData = new FormData();
+    formData.append('image', image);
+
+    return this.http.post<{ invoiceId: string }>(`${this.apiUrl}/analyze`, formData);
+  }
+
+  validateInvoice(invoiceId: string): Observable<Invoice> {
+    return this.http.patch<Invoice>(`${this.apiUrl}/${invoiceId}/validate`, {});
+  }
+
+  deleteInvoice(invoiceId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${invoiceId}`);
   }
 }

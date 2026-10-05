@@ -16,6 +16,11 @@ export interface Invoice {
   totalAmount: number;
   totalVatSupported: number;
   totalDeductibleVat: number;
+  confidenceRate: number;
+  status: 'classified' | 'suggested' | 'requires_review';
+  classificationReason: string;
+  validationStatus: 'pending' | 'validated';
+  validatedAt: string | null;
   rawAiResponse: string;
   createdAt: string;
 }

@@ -25,12 +25,47 @@
     <button type="button" (click)="loadInvoices()">🔄 Atualizar Lista</button>
   </header>
 
+  <section class="upload-panel" aria-labelledby="upload-title">
+    <div class="upload-copy">
+      <h2 id="upload-title">Analisar documento</h2>
+      <p>Envie uma imagem da fatura para extrair os dados e classificar as linhas.</p>
+    </div>
+    <form class="upload-form" (submit)="analyzeInvoice($event)">
+      <label class="upload-picker">
+        <span class="upload-file-copy">
+          <strong>{{ selectedFile?.name || 'Escolher imagem' }}</strong>
+          <small>JPEG ou PNG</small>
+        </span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png"
+          [disabled]="isAnalyzing"
+          (change)="onFileSelected($event)"
+        />
+      </label>
+      <button class="analyze-button" type="submit" [disabled]="!selectedFile || isAnalyzing">
+        {{ isAnalyzing ? 'A analisar...' : 'Analisar fatura' }}
+      </button>
+      <p class="upload-feedback error" *ngIf="uploadError" role="alert">{{ uploadError }}</p>
+      <p class="upload-feedback success" *ngIf="uploadMessage" role="status">{{ uploadMessage }}</p>
+    </form>
+  </section>
+
   <ng-container *ngIf="!isLoading; else loadingState">
-    <div class="invoice-layout" *ngIf="sortedInvoices.length; else emptyState">
+    <div class="invoice-layout" *ngIf="visibleInvoices.length; else emptyState">
       <aside class="invoice-list">
         <div class="list-header">
-          <h2>Invoices</h2>
-          <span>{{ sortedInvoices.length }}</span>
+          <h2>{{ validationFilter === 'pending' ? 'Por validar' : 'Todas as faturas' }}</h2>
+          <span>{{ visibleInvoices.length }}</span>
+        </div>
+
+        <div class="validation-filters" role="group" aria-label="Filtrar faturas por validação">
+          <button type="button" [class.active]="validationFilter === 'pending'" (click)="setValidationFilter('pending')">
+            Por validar <span>{{ pendingInvoicesCount }}</span>
+          </button>
+          <button type="button" [class.active]="validationFilter === 'all'" (click)="setValidationFilter('all')">
+            Todas <span>{{ invoices.length }}</span>
+          </button>
         </div>
 
         <div class="sort-controls">
@@ -55,7 +90,7 @@
 
         <button
           type="button"
-          *ngFor="let invoice of sortedInvoices"
+          *ngFor="let invoice of visibleInvoices"
           class="invoice-item"
           [class.active]="selectedInvoiceId === invoice.id"
           (click)="toggleDetails(invoice.id)"
@@ -68,10 +103,18 @@
             <small>{{ invoice.supplierVat || 'Sem NIF' }}</small>
             <b>{{ invoice.totalAmount | number: '1.2-2' }} €</b>
           </div>
+          <div class="invoice-item-status">
+            <span class="alert-badge" [class.warning]="invoice.status === 'suggested'" [class.status-requires_review]="invoice.status === 'requires_review'">{{ getStatusLabel(invoice.status) }}</span>
+            <small>{{ invoice.confidenceRate | number: '1.0-2' }}% confiança</small>
+          </div>
+          <span class="validation-badge" [class.is-validated]="invoice.validationStatus === 'validated'">
+            {{ invoice.validationStatus === 'validated' ? 'Validada' : 'Por validar' }}
+          </span>
         </button>
       </aside>
 
       <section class="invoice-detail" *ngIf="getSelectedInvoice() as selectedInvoice; else noSelection">
+        <p class="delete-feedback success" *ngIf="deleteMessage" role="status">{{ deleteMessage }}</p>
         <div class="detail-header">
           <div>
             <small>Fatura selecionada</small>
@@ -79,8 +122,26 @@
           </div>
           <div class="detail-header-actions">
             <span class="detail-date">{{ selectedInvoice.invoiceDate || 'N/D' }}</span>
+            <button type="button" class="delete-button" [disabled]="isDeleting" (click)="requestInvoiceDeletion()">
+              Eliminar fatura
+            </button>
+            <button
+              *ngIf="selectedInvoice.validationStatus !== 'validated'"
+              type="button"
+              class="validate-button"
+              [disabled]="isValidating"
+              (click)="validateInvoice(selectedInvoice)"
+            >
+              {{ isValidating ? 'A validar...' : 'Validar fatura' }}
+            </button>
+            <span *ngIf="selectedInvoice.validationStatus === 'validated'" class="validation-badge is-validated">
+              Validada<span *ngIf="selectedInvoice.validatedAt"> em {{ selectedInvoice.validatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </span>
           </div>
         </div>
+
+        <p class="validation-feedback success" *ngIf="validationMessage" role="status">{{ validationMessage }}</p>
+        <p class="validation-feedback error" *ngIf="validationError" role="alert">{{ validationError }}</p>
 
         <div class="detail-grid">
           <div>
@@ -107,7 +168,20 @@
             <strong>Data</strong>
             <span>{{ selectedInvoice.invoiceDate || 'N/D' }}</span>
           </div>
+          <div>
+            <strong>Estado</strong>
+            <span class="alert-badge" [class.warning]="selectedInvoice.status === 'suggested'" [class.status-requires_review]="selectedInvoice.status === 'requires_review'">{{ getStatusLabel(selectedInvoice.status) }}</span>
+          </div>
+          <div>
+            <strong>Confiança do modelo</strong>
+            <span>{{ selectedInvoice.confidenceRate | number: '1.0-2' }}%</span>
+          </div>
         </div>
+
+        <section class="classification-reason" aria-label="Motivo da classificação">
+          <strong>Motivo da classificação</strong>
+          <p>{{ selectedInvoice.classificationReason }}</p>
+        </section>
 
         <div class="line-list" *ngIf="getClassifiedLines(selectedInvoice).length; else noDetails">
           <h4>Análise por linha</h4>
@@ -143,6 +217,40 @@
     </div>
   </ng-container>
 
+  <div class="delete-dialog-backdrop" *ngIf="deleteConfirmationStep" (click)="cancelInvoiceDeletion()">
+    <section
+      class="delete-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <ng-container *ngIf="getSelectedInvoice() as invoice">
+        <p class="delete-dialog-step">Confirmação {{ deleteConfirmationStep }} de 2</p>
+        <h2 id="delete-dialog-title">{{ deleteConfirmationStep === 1 ? 'Eliminar esta fatura?' : 'Confirma a eliminação definitiva?' }}</h2>
+        <p *ngIf="deleteConfirmationStep === 1">
+          A fatura de <strong>{{ invoice.supplier }}</strong> será removida permanentemente.
+        </p>
+        <p *ngIf="deleteConfirmationStep === 2">
+          Esta ação não pode ser desfeita. Confirma que pretende eliminar a fatura de
+          <strong>{{ invoice.supplier }}</strong> no valor de {{ invoice.totalAmount | number: '1.2-2' }} €?
+        </p>
+        <p class="delete-feedback error" *ngIf="deleteError" role="alert">{{ deleteError }}</p>
+        <div class="delete-dialog-actions">
+          <button type="button" class="cancel-delete-button" [disabled]="isDeleting" (click)="cancelInvoiceDeletion()">Cancelar</button>
+          <button
+            type="button"
+            class="confirm-delete-button"
+            [disabled]="isDeleting"
+            (click)="confirmInvoiceDeletion()"
+          >
+            {{ isDeleting ? 'A eliminar...' : (deleteConfirmationStep === 1 ? 'Continuar' : 'Eliminar definitivamente') }}
+          </button>
+        </div>
+      </ng-container>
+    </section>
+  </div>
+
   <ng-template #loadingState>
     <div class="invoice-layout">
       <section class="invoice-detail empty-detail">
@@ -153,8 +261,14 @@
   </ng-template>
 
   <ng-template #emptyState>
-    <div class="empty-state">
+    <div class="empty-state" *ngIf="!invoices.length; else noPendingInvoices">
       <p>Ainda não existem faturas processadas. Envia um talão via API para começar.</p>
     </div>
+    <ng-template #noPendingInvoices>
+      <div class="empty-state">
+        <p>Todas as faturas estão validadas.</p>
+        <button type="button" class="secondary-action" (click)="setValidationFilter('all')">Ver todas as faturas</button>
+      </div>
+    </ng-template>
   </ng-template>
 </div>

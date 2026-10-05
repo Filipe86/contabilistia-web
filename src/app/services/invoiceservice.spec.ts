@@ -37,4 +37,12 @@ describe('InvoiceService', () => {
     expect(result?.length).toBe(1);
     expect(result?.[0].supplier).toBe('Papelaria e Gestão, Lda.');
   });
+
+  it('should send a DELETE request for an invoice', () => {
+    service.deleteInvoice('invoice-1').subscribe();
+
+    const req = httpTestingController.expectOne('http://localhost:3000/invoices/invoice-1');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
 });

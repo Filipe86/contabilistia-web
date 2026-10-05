@@ -9,10 +9,14 @@ import { Invoices } from './invoices';
 describe('Invoices', () => {
   let component: Invoices;
   let fixture: ComponentFixture<Invoices>;
-  let invoiceService: { getInvoices: ReturnType<typeof vi.fn> };
+  let invoiceService: {
+    deleteInvoice: ReturnType<typeof vi.fn>;
+    getInvoices: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
-    invoiceService = { getInvoices: vi.fn() };
+    invoiceService = { deleteInvoice: vi.fn(), getInvoices: vi.fn() };
+    invoiceService.deleteInvoice.mockReturnValue(of(void 0));
     invoiceService.getInvoices.mockReturnValue(
       of([
         {
@@ -90,5 +94,20 @@ describe('Invoices', () => {
     expect(component.getClassifiedLines(component.invoices[0])[0].review_alert).toBe(true);
     expect(fixture.nativeElement.textContent).not.toContain('Mostrar filtros');
     expect(fixture.nativeElement.querySelector('.line-editor-grid')).toBeNull();
+  });
+
+  it('requires two confirmations before deleting an invoice', () => {
+    component.requestInvoiceDeletion();
+    component.confirmInvoiceDeletion();
+
+    expect(component.deleteConfirmationStep).toBe(2);
+    expect(invoiceService.deleteInvoice).not.toHaveBeenCalled();
+
+    component.confirmInvoiceDeletion();
+
+    expect(invoiceService.deleteInvoice).toHaveBeenCalledWith('inv-1');
+    expect(component.invoices).toHaveLength(0);
+    expect(component.selectedInvoiceId).toBeNull();
+    expect(component.deleteConfirmationStep).toBeNull();
   });
 });
