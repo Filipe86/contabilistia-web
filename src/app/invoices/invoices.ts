@@ -1,38 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { InvoiceService } from '../invoiceservice';
+import { InvoiceService } from '../services/invoiceservice';
 import { Invoice } from '../models/invoice.model';
 
 @Component({
   selector: 'app-invoices',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './invoices.html',
   styleUrl: './invoices.css',
 })
 export class Invoices implements OnInit {
   invoices: Invoice[] = [];
   selectedInvoiceId: string | null = null;
-  startDate = '';
-  endDate = '';
   sortField: 'date' | 'supplier' = 'date';
   sortDirection: 'asc' | 'desc' = 'desc';
-  filtersVisible = false;
   isLoading = false;
 
-  constructor(private invoiceService: InvoiceService) {}
+  constructor(
+    private invoiceService: InvoiceService,
+    private changeDetector: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
     this.loadInvoices();
   }
 
-  get filteredInvoices(): Invoice[] {
-    const filtered = this.invoices.filter((invoice) => this.matchesDateFilter(invoice));
-
-    return [...filtered].sort((a, b) => {
+  get sortedInvoices(): Invoice[] {
+    return [...this.invoices].sort((a, b) => {
       const direction = this.sortDirection === 'asc' ? 1 : -1;
 
       if (this.sortField === 'supplier') {
@@ -53,6 +50,7 @@ export class Invoices implements OnInit {
       .pipe(
         finalize(() => {
           this.isLoading = false;
+          this.changeDetector.markForCheck();
         })
       )
       .subscribe({
@@ -67,30 +65,6 @@ export class Invoices implements OnInit {
           this.selectedInvoiceId = null;
         }
       });
-  }
-
-  matchesDateFilter(invoice: Invoice): boolean {
-    const invoiceDate = (invoice.invoiceDate || '').slice(0, 10);
-
-    if (this.startDate && invoiceDate < this.startDate) {
-      return false;
-    }
-
-    if (this.endDate && invoiceDate > this.endDate) {
-      return false;
-    }
-
-    return true;
-  }
-
-  clearDateFilters(): void {
-    this.startDate = '';
-    this.endDate = '';
-    this.selectedInvoiceId = null;
-  }
-
-  toggleFilters(): void {
-    this.filtersVisible = !this.filtersVisible;
   }
 
   changeSort(field: 'date' | 'supplier'): void {
@@ -108,15 +82,15 @@ export class Invoices implements OnInit {
   }
 
   getSelectedInvoice(): Invoice | null {
-    if (!this.filteredInvoices.length) {
+    if (!this.sortedInvoices.length) {
       return null;
     }
 
     if (!this.selectedInvoiceId) {
-      this.selectedInvoiceId = this.filteredInvoices[0].id;
+      this.selectedInvoiceId = this.sortedInvoices[0].id;
     }
 
-    return this.filteredInvoices.find((invoice) => invoice.id === this.selectedInvoiceId) ?? this.filteredInvoices[0];
+    return this.sortedInvoices.find((invoice) => invoice.id === this.selectedInvoiceId) ?? this.sortedInvoices[0];
   }
 
   getParsedRawResponse(invoice: Invoice): any {
@@ -135,4 +109,5 @@ export class Invoices implements OnInit {
     const parsed = this.getParsedRawResponse(invoice);
     return Array.isArray(parsed?.classified_lines) ? parsed.classified_lines : [];
   }
+
 }

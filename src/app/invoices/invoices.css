@@ -33,27 +33,9 @@
 .brand-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex: 0 0 auto;
   text-decoration: none;
   color: inherit;
-}
-
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #1d4ed8, #60a5fa);
-  color: white;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.28);
-}
-
-.brand {
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
 }
 
 .nav-links {
@@ -86,9 +68,9 @@
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  background: linear-gradient(115deg, var(--brand-navy), var(--brand-blue));
   color: white;
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.25);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
 }
 
 .invoice-panel {
@@ -145,52 +127,6 @@
   overflow-y: auto;
 }
 
-.filter-toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.toggle-filters {
-  width: fit-content;
-  border: none;
-  border-radius: 8px;
-  background: #e2e8f0;
-  color: #0f172a;
-  padding: 8px 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.date-filters {
-  display: flex;
-  align-items: end;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.date-filters label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.72rem;
-  color: #475569;
-  font-weight: 600;
-}
-
-.date-filters input {
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 7px 8px;
-  font: inherit;
-  background: #fff;
-  min-height: 34px;
-}
-
-.clear-filter,
 .sort-buttons button {
   border: none;
   border-radius: 8px;
@@ -368,6 +304,13 @@
 .detail-grid span {
   color: #0f172a;
   font-weight: 600;
+}
+
+.detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .line-list {

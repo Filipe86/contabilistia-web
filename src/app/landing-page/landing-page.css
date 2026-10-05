@@ -37,25 +37,7 @@
 .brand-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #1d4ed8, #60a5fa);
-  color: white;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.28);
-}
-
-.brand {
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  flex: 0 0 auto;
 }
 
 .nav-links {
@@ -99,9 +81,9 @@
 
 .nav-cta,
 .primary-btn {
-  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  background: linear-gradient(115deg, var(--brand-navy), var(--brand-blue));
   color: white;
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.25);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
 }
 
 .secondary-btn {
@@ -286,8 +268,32 @@
 
 .features-section,
 .process-section,
-.benefits-section {
+.benefits-section,
+.pricing-section {
   padding-top: 76px;
+}
+
+.pricing-section {
+  scroll-margin-top: 120px;
+}
+
+.pricing-table-wrap {
+  overflow-x: auto;
+  background: white;
+}
+
+.pricing-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.pricing-table th,
+.pricing-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  line-height: 1.5;
 }
 
 .section-heading {
@@ -302,21 +308,116 @@
 }
 
 .features-grid,
-.process-grid,
 .benefits-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 .feature-card,
-.process-card,
 .benefit-box {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 20px;
   padding: 24px 20px;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+}
+
+.process-card {
+  position: relative;
+  min-width: 0;
+  padding: 24px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-top: 3px solid #3b82f6;
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+}
+
+.process-card:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  z-index: 1;
+  top: 28px;
+  right: -25px;
+  color: #1d4ed8;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.process-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+}
+
+.process-card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.process-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 96px;
+  margin-top: 18px;
+  border-radius: 8px;
+  background: linear-gradient(120deg, #eff6ff, #ecfdf5);
+}
+
+.process-icons span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  border-radius: 50%;
+  background: white;
+  font-size: 1.45rem;
+}
+
+.process-icons-core span {
+  width: 64px;
+  height: 64px;
+  font-size: 2rem;
+}
+
+.process-details {
+  display: grid;
+  gap: 16px;
+  list-style: none;
+  padding: 20px 0 0;
+  margin: 20px 0 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.process-details li {
+  display: grid;
+  gap: 4px;
+}
+
+.process-details strong {
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.process-details span {
+  color: #475569;
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
 
 .feature-icon {
@@ -331,14 +432,12 @@
 }
 
 .feature-card h3,
-.process-card h3,
 .benefit-box h4 {
   margin: 18px 0 10px;
   font-size: 1.25rem;
 }
 
 .feature-card p,
-.process-card p,
 .benefit-box p {
   margin: 0;
   color: #475569;
@@ -362,10 +461,22 @@
 @media (max-width: 900px) {
   .hero-section,
   .features-grid,
-  .process-grid,
   .benefits-grid,
   .trust-bar {
     grid-template-columns: 1fr;
+  }
+
+  .process-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .process-card:not(:last-child)::after {
+    content: '↓';
+    top: auto;
+    right: 50%;
+    bottom: -27px;
+    transform: translateX(50%);
   }
 
   .landing-nav {

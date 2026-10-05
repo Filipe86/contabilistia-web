@@ -5,5 +5,6 @@ import { Invoices } from './invoices/invoices';
 export const routes: Routes = [
   { path: '', component: LandingPage },
   { path: 'demo', component: Invoices },
+  { path: 'invoices', component: Invoices },
   { path: '**', redirectTo: '' }
 ];

@@ -1,1 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+	--brand-navy: #1e3a8a;
+	--brand-blue: #2563eb;
+	--brand-cyan: #38bdf8;
+	--brand-violet: #7c3aed;
+}
+
+.brand-logo {
+	display: block;
+	width: 210px;
+	max-width: 100%;
+	height: auto;
+}

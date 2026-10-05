@@ -1,15 +1,15 @@
 <div class="landing-page">
   <header class="landing-header">
     <nav class="landing-nav">
-      <div class="brand-wrap">
-        <div class="brand-mark">C</div>
-        <div class="brand">Contabilistia</div>
-      </div>
+      <a class="brand-wrap" [routerLink]="['/']">
+        <img class="brand-logo" src="/contabilistia-logo.svg" alt="ContabilistIA, Automação Fiscal Inteligente" />
+      </a>
 
       <div class="nav-links">
         <a href="#features">Funcionalidades</a>
         <a href="#benefits">Benefícios</a>
         <a href="#process">Como funciona</a>
+        <a href="#pricing">Preços</a>
         <a [routerLink]="'/demo'">Demo</a>
       </div>
 
@@ -23,7 +23,7 @@
         <span class="eyebrow">IA para contabilidade</span>
         <h1>Classificação fiscal inteligente para facturas e despesas.</h1>
         <p>
-          A Contabilistia ajuda equipas financeiras a automatizar a triagem de documentos,
+          A ContabilistIA ajuda equipas financeiras a automatizar a triagem de documentos,
           validar IVA, reduzir erros manuais e manter uma revisão clara por linha e por fornecedor.
         </p>
 
@@ -121,31 +121,6 @@
       </div>
     </section>
 
-    <section class="process-section" id="process">
-      <div class="section-heading">
-        <span class="eyebrow">Como funciona</span>
-        <h2>Do documento à decisão final em poucos passos.</h2>
-      </div>
-
-      <div class="process-grid">
-        <div class="process-card">
-          <span class="step-number">01</span>
-          <h3>Carrega</h3>
-          <p>Recebe as facturas e despesas diretamente do sistema ou de upload.</p>
-        </div>
-        <div class="process-card">
-          <span class="step-number">02</span>
-          <h3>Classifica</h3>
-          <p>Analisa fornecedores, valores, IVA e contexto fiscal por linha.</p>
-        </div>
-        <div class="process-card">
-          <span class="step-number">03</span>
-          <h3>Revisa</h3>
-          <p>Confirma os casos com alertas, mantém histórico e reduz esforço manual.</p>
-        </div>
-      </div>
-    </section>
-
     <section class="benefits-section" id="benefits">
       <div class="section-heading">
         <span class="eyebrow">Benefícios</span>
@@ -167,5 +142,117 @@
         </div>
       </div>
     </section>
+
+    <section class="process-section" id="process">
+      <div class="section-heading">
+        <span class="eyebrow">Como funciona</span>
+        <h2>Do documento à decisão final em poucos passos.</h2>
+      </div>
+
+      <ol class="process-grid" aria-label="Fluxo de processamento de documentos em três etapas">
+        <li class="process-card">
+          <div class="process-card-heading">
+            <span class="step-number">01</span>
+            <h3>Receção multicanal</h3>
+          </div>
+          <div class="process-icons" role="img" aria-label="Entradas: WhatsApp, email e portal Web">
+            <span aria-hidden="true">💬</span>
+            <span aria-hidden="true">✉️</span>
+            <span aria-hidden="true">📄</span>
+          </div>
+          <ul class="process-details">
+            <li><strong>WhatsApp</strong><span>O cliente fotografa o recibo e envia na hora.</span></li>
+            <li><strong>Email</strong><span>Encaminhamento automático de PDFs e faturas eletrónicas.</span></li>
+            <li><strong>Portal Web</strong><span>Arraste e largada de lotes digitalizados.</span></li>
+          </ul>
+        </li>
+        <li class="process-card">
+          <div class="process-card-heading">
+            <span class="step-number">02</span>
+            <h3>Motor Inteligente ContabilistIA</h3>
+          </div>
+          <div class="process-icons process-icons-core" role="img" aria-label="Sistema de processamento inteligente">
+            <span aria-hidden="true">🧠</span>
+          </div>
+          <ul class="process-details">
+            <li><strong>Extração e leitura</strong><span>Identifica o NIF, as linhas de detalhe e as taxas de IVA.</span></li>
+            <li><strong>Enquadramento do CIVA</strong><span>Aplica o Artigo 21.º a combustíveis, restauração e despesas de representação.</span></li>
+            <li><strong>Plano de Contas</strong><span>Mapeia automaticamente as contas do SNC.</span></li>
+          </ul>
+        </li>
+        <li class="process-card">
+          <div class="process-card-heading">
+            <span class="step-number">03</span>
+            <h3>Resultados no gabinete</h3>
+          </div>
+          <div class="process-icons" role="img" aria-label="Saídas: integração ERP, proposta auditável e eficiência operacional">
+            <span aria-hidden="true">🖥️</span>
+            <span aria-hidden="true">🛡️</span>
+            <span aria-hidden="true">⚡</span>
+          </div>
+          <ul class="process-details">
+            <li><strong>Conectividade ERP</strong><span>Exportação direta para Primavera, TOConline, PHC ou Sage.</span></li>
+            <li><strong>Proposta auditável</strong><span>Fundamentação jurídica da dedutibilidade para a AT.</span></li>
+            <li><strong>Eficiência operacional</strong><span>Redução do tempo de lançamento de 2,5 min para 30 segundos.</span></li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <section class="pricing-section" id="pricing">
+      <div class="section-heading">
+        <span class="eyebrow">Preços</span>
+        <h2>Comece com o essencial. Cresça ao seu ritmo.</h2>
+        <p>Escolha a capacidade certa para o seu gabinete e pague apenas pelo volume de que precisa.</p>
+      </div>
+
+      <div class="pricing-table-wrap">
+        <table class="pricing-table">
+          <thead>
+            <tr>
+              <th scope="col">Plano</th>
+              <th scope="col">Preço / mês</th>
+              <th scope="col">Faturas incluídas</th>
+              <th scope="col">Por fatura extra</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><strong>Freemium / Pilot</strong><br><small>Experimente e valide o processo.</small></th>
+              <td>0 €</td>
+              <td>100 faturas / mês</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>Micro / Solo</strong><br><small>Para contabilistas independentes e pequenos portefólios.</small></th>
+              <td>29 € / mês</td>
+              <td>500 faturas / mês</td>
+              <td>0,06 €</td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>Gabinete Standard</strong><br><small>Para equipas de 1 a 3 colaboradores.</small></th>
+              <td>79 € / mês</td>
+              <td>2.500 faturas / mês</td>
+              <td>0,04 €</td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>Gabinete Plus</strong><br><small>Mais capacidade para equipas de 4 a 8 colaboradores.</small></th>
+              <td>169 € / mês</td>
+              <td>7.000 faturas / mês</td>
+              <td>0,03 €</td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>Enterprise</strong><br><small>Solução à medida para grandes gabinetes e direções financeiras.</small></th>
+              <td>Sob consulta</td>
+              <td>&gt; 15.000 faturas</td>
+              <td>Personalizado</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pricing-note">Precisa de uma solução à medida? <a [routerLink]="'/demo'">Fale connosco</a>.</p>
+    </section>
+
   </main>
+  <footer class="landing-footer"><small>© 2026 ContabilistIA. Todos os direitos reservados.</small></footer>
 </div>

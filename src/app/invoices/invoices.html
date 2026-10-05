@@ -1,14 +1,14 @@
 <header class="landing-header demo-header">
   <nav class="landing-nav demo-nav">
     <a class="brand-wrap" [routerLink]="['/']">
-      <span class="brand-mark">C</span>
-      <span class="brand">Contabilistia</span>
+      <img class="brand-logo" src="/contabilistia-logo.svg" alt="ContabilistIA, Automação Fiscal Inteligente" />
     </a>
 
     <div class="nav-links demo-links">
       <a [routerLink]="['/']" [fragment]="'features'">Funcionalidades</a>
       <a [routerLink]="['/']" [fragment]="'benefits'">Benefícios</a>
       <a [routerLink]="['/']" [fragment]="'process'">Como funciona</a>
+      <a [routerLink]="['/']" [fragment]="'pricing'">Preços</a>
       <a [routerLink]="['/demo']">Demo</a>
     </div>
 
@@ -19,36 +19,18 @@
 <div class="invoice-panel">
   <header class="invoice-header">
     <div>
-      <h1>Contabilistia</h1>
+      <h1>ContabilistIA</h1>
       <p>Painel de Triagem Fiscal Automática (SNC / CIVA)</p>
     </div>
     <button type="button" (click)="loadInvoices()">🔄 Atualizar Lista</button>
   </header>
 
   <ng-container *ngIf="!isLoading; else loadingState">
-    <div class="invoice-layout" *ngIf="filteredInvoices.length; else emptyState">
+    <div class="invoice-layout" *ngIf="sortedInvoices.length; else emptyState">
       <aside class="invoice-list">
         <div class="list-header">
           <h2>Invoices</h2>
-          <span>{{ filteredInvoices.length }}</span>
-        </div>
-
-        <div class="filter-toolbar">
-          <button type="button" class="toggle-filters" (click)="toggleFilters()">
-            {{ filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros' }}
-          </button>
-
-          <div class="date-filters" *ngIf="filtersVisible">
-            <label>
-              <span>De</span>
-              <input type="date" [(ngModel)]="startDate" />
-            </label>
-            <label>
-              <span>Até</span>
-              <input type="date" [(ngModel)]="endDate" />
-            </label>
-            <button type="button" class="clear-filter" (click)="clearDateFilters()">Limpar</button>
-          </div>
+          <span>{{ sortedInvoices.length }}</span>
         </div>
 
         <div class="sort-controls">
@@ -73,7 +55,7 @@
 
         <button
           type="button"
-          *ngFor="let invoice of filteredInvoices"
+          *ngFor="let invoice of sortedInvoices"
           class="invoice-item"
           [class.active]="selectedInvoiceId === invoice.id"
           (click)="toggleDetails(invoice.id)"
@@ -95,7 +77,9 @@
             <small>Fatura selecionada</small>
             <h3>{{ selectedInvoice.supplier }}</h3>
           </div>
-          <span class="detail-date">{{ selectedInvoice.invoiceDate || 'N/D' }}</span>
+          <div class="detail-header-actions">
+            <span class="detail-date">{{ selectedInvoice.invoiceDate || 'N/D' }}</span>
+          </div>
         </div>
 
         <div class="detail-grid">
@@ -131,9 +115,7 @@
           <div *ngFor="let line of getClassifiedLines(selectedInvoice); let i = index" class="line-analysis">
             <div class="line-header">
               <strong>{{ i + 1 }}. {{ line.original_description }}</strong>
-              <span class="alert-badge" [class.warning]="line.review_alert">
-                {{ line.review_alert ? 'Revisão' : 'OK' }}
-              </span>
+              <span *ngIf="line.review_alert" class="alert-badge warning">Revisão</span>
             </div>
 
             <div class="line-meta">
@@ -172,12 +154,7 @@
 
   <ng-template #emptyState>
     <div class="empty-state">
-      <p *ngIf="startDate || endDate; else noInvoices">
-        Nenhuma fatura encontrada para o intervalo selecionado.
-      </p>
-      <ng-template #noInvoices>
-        <p>Ainda não existem faturas processadas. Envia um talão via API para começar.</p>
-      </ng-template>
+      <p>Ainda não existem faturas processadas. Envia um talão via API para começar.</p>
     </div>
   </ng-template>
 </div>
