@@ -1,11 +1,20 @@
 export interface InvoiceLine {
-  original_description: string;
-  suggested_snc_account: string;
-  fiscal_reasoning: string;
-  base_amount: number;
-  vat_rate: number;
-  deductible_vat_this_line: number;
-  review_alert: boolean;
+  id: string;
+  originalDescription: string;
+  suggestedSNCAccount: string;
+  fiscalReasoning: string;
+  baseAmount: number;
+  vatRate: number;
+  deductibleVatThisLine: number;
+  reviewAlert: boolean;
+  confidenceRate: number;
+  reviewAlertReasoning: string;
+  sncAccount?: SNCAccount | null;
+}
+
+export interface SNCAccount {
+  code: string;
+  description: string;
 }
 
 export interface Invoice {
@@ -21,6 +30,7 @@ export interface Invoice {
   classificationReason: string;
   validationStatus: 'pending' | 'validated';
   validatedAt: string | null;
+  classifiedLines?: InvoiceLine[];
   rawAiResponse: string;
   createdAt: string;
 }

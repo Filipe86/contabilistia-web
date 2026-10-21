@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Invoice } from '../models/invoice.model';
+import { Invoice, InvoiceLine, SNCAccount } from '../models/invoice.model';
 
 @Injectable({
   providedIn: 'root'
@@ -65,6 +65,10 @@ export class InvoiceService {
     );
   }
 
+  getSNCAccounts(): Observable<SNCAccount[]> {
+    return this.http.get<SNCAccount[]>(`${this.apiUrl}/snc-accounts`);
+  }
+
   analyzeInvoice(image: File): Observable<{ invoiceId: string }> {
     const formData = new FormData();
     formData.append('image', image);
@@ -74,6 +78,13 @@ export class InvoiceService {
 
   validateInvoice(invoiceId: string): Observable<Invoice> {
     return this.http.patch<Invoice>(`${this.apiUrl}/${invoiceId}/validate`, {});
+  }
+
+  updateLineAccount(invoiceId: string, lineId: string, suggestedSNCAccount: string): Observable<InvoiceLine> {
+    return this.http.patch<InvoiceLine>(
+      `${this.apiUrl}/${invoiceId}/lines/${lineId}/account`,
+      { suggestedSNCAccount },
+    );
   }
 
   deleteInvoice(invoiceId: string): Observable<void> {

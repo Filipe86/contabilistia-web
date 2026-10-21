@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { vi } from 'vitest';
 import { InvoiceService } from '../services/invoiceservice';
-import { Invoice } from '../models/invoice.model';
+import { Invoice, InvoiceLine } from '../models/invoice.model';
 import { Invoices } from './invoices';
 
 describe('Invoices', () => {
@@ -12,10 +12,21 @@ describe('Invoices', () => {
   let invoiceService: {
     deleteInvoice: ReturnType<typeof vi.fn>;
     getInvoices: ReturnType<typeof vi.fn>;
+    getSNCAccounts: ReturnType<typeof vi.fn>;
+    updateLineAccount: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
-    invoiceService = { deleteInvoice: vi.fn(), getInvoices: vi.fn() };
+    invoiceService = {
+      deleteInvoice: vi.fn(),
+      getInvoices: vi.fn(),
+      getSNCAccounts: vi.fn(),
+      updateLineAccount: vi.fn(),
+    };
+    invoiceService.getSNCAccounts.mockReturnValue(of([
+      { code: '6231', description: 'Ferramentas e utensílios de desgaste rápido' },
+      { code: '6242', description: 'Combustíveis' },
+    ]));
     invoiceService.deleteInvoice.mockReturnValue(of(void 0));
     invoiceService.getInvoices.mockReturnValue(
       of([
@@ -91,9 +102,118 @@ describe('Invoices', () => {
     expect(component.getClassifiedLines(component.invoices[0])).toHaveLength(1);
     expect(fixture.nativeElement.querySelector('.invoice-state-badge')).toBeNull();
     expect(fixture.nativeElement.querySelector('.invoice-item')?.textContent).toContain('Acme');
-    expect(component.getClassifiedLines(component.invoices[0])[0].review_alert).toBe(true);
+    expect(component.getClassifiedLines(component.invoices[0])[0].reviewAlert).toBe(true);
     expect(fixture.nativeElement.textContent).not.toContain('Mostrar filtros');
     expect(fixture.nativeElement.querySelector('.line-editor-grid')).toBeNull();
+  });
+
+  it('renders and saves the account stored for an invoice line', async () => {
+    const line = {
+      id: 'line-1',
+      originalDescription: 'Material de escritório',
+      suggestedSNCAccount: '6231',
+      fiscalReasoning: 'Material consumível.',
+      baseAmount: 100,
+      vatRate: 23,
+      deductibleVatThisLine: 23,
+      reviewAlert: false,
+      confidenceRate: 90,
+      reviewAlertReasoning: '',
+    };
+    const invoice = { ...component.invoices[0], id: 'inv-2', classifiedLines: [line] };
+    invoiceService.getInvoices.mockReturnValue(of([invoice]));
+    invoiceService.updateLineAccount.mockReturnValue(of({ ...line, suggestedSNCAccount: '6242' }));
+    component.loadInvoices(invoice.id);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.getClassifiedLines(invoice)).toEqual([line]);
+    expect(component.getSelectedInvoice()).toBe(invoice);
+    expect(fixture.nativeElement.querySelector('.line-account-editor input')).toBeNull();
+    const editButton = fixture.nativeElement.querySelector('.line-account-edit-button') as HTMLButtonElement;
+    expect(editButton.textContent).toContain('Editar conta');
+    editButton.click();
+    fixture.detectChanges();
+    const cancelButton = fixture.nativeElement.querySelector('.line-account-cancel-button') as HTMLButtonElement;
+    expect(cancelButton.textContent).toContain('Cancelar');
+    cancelButton.click();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.line-account-edit-button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const search: HTMLInputElement = fixture.nativeElement.querySelector('.line-account-editor input');
+    expect(search.placeholder).toContain('6231 - Ferramentas e utensílios de desgaste rápido');
+    expect(fixture.nativeElement.querySelector('.line-account-current').textContent)
+      .toContain('6231 - Ferramentas e utensílios de desgaste rápido');
+    search.value = 'Combustíveis';
+    search.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.line-account-current').textContent)
+      .toContain('6231 - Ferramentas e utensílios de desgaste rápido');
+    const matchingAccounts = fixture.nativeElement.querySelectorAll('.snc-account-results button');
+    expect(matchingAccounts).toHaveLength(1);
+    expect(matchingAccounts[0].textContent).toContain('6242 - Combustíveis');
+    (matchingAccounts[0] as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const saveButton = fixture.nativeElement.querySelector('.line-account-save-button') as HTMLButtonElement;
+    saveButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(invoiceService.updateLineAccount).toHaveBeenCalledWith('inv-2', 'line-1', '6242');
+    expect(invoiceService.getInvoices).toHaveBeenCalledTimes(2);
+    expect(component.getSelectedInvoice()?.classifiedLines?.[0].suggestedSNCAccount).toBe('6242');
+    expect(fixture.nativeElement.querySelector('.line-account-current').textContent).toContain('6242 - Combustíveis');
+    expect(fixture.nativeElement.querySelector('.line-account-edit-button')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.line-account-editor input')).toBeNull();
+  });
+
+  it('filters SNC accounts by code and accent-insensitive description', () => {
+    const line: InvoiceLine = {
+      id: 'line-filter',
+      originalDescription: '',
+      suggestedSNCAccount: '',
+      fiscalReasoning: '',
+      baseAmount: 0,
+      vatRate: 0,
+      deductibleVatThisLine: 0,
+      reviewAlert: false,
+      confidenceRate: 0,
+      reviewAlertReasoning: '',
+    };
+    component.lineAccountSearches[line.id] = '6231';
+    expect(component.getFilteredSNCAccounts(line).map((account) => account.code)).toEqual(['6231']);
+
+    component.lineAccountSearches[line.id] = 'utensilios desgaste';
+    expect(component.getFilteredSNCAccounts(line).map((account) => account.code)).toEqual(['6231']);
+  });
+
+  it('cancels an SNC account edit and discards the temporary selection', async () => {
+    const line: InvoiceLine = {
+      id: 'line-cancel',
+      originalDescription: 'Combustível',
+      suggestedSNCAccount: '6231',
+      fiscalReasoning: '',
+      baseAmount: 10,
+      vatRate: 23,
+      deductibleVatThisLine: 0,
+      reviewAlert: false,
+      confidenceRate: 90,
+      reviewAlertReasoning: '',
+    };
+    component.editLineAccount(line);
+    component.lineAccountEdits[line.id] = '6242';
+    component.lineAccountSearches[line.id] = 'Combustíveis';
+    component.openLineAccountSearches.add(line.id);
+    component.cancelLineAccountEdit(line);
+
+    expect(component.editingLineAccountIds.has(line.id)).toBe(false);
+    expect(component.openLineAccountSearches.has(line.id)).toBe(false);
+    expect(component.lineAccountEdits[line.id]).toBe('6231');
+    expect(component.lineAccountSearches[line.id]).toBe('');
+    expect(invoiceService.updateLineAccount).not.toHaveBeenCalled();
   });
 
   it('requires two confirmations before deleting an invoice', () => {

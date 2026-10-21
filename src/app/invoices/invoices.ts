@@ -1,14 +1,15 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { InvoiceService } from '../services/invoiceservice';
-import { Invoice } from '../models/invoice.model';
+import { Invoice, InvoiceLine, SNCAccount } from '../models/invoice.model';
 
 @Component({
   selector: 'app-invoices',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './invoices.html',
   styleUrl: './invoices.css',
 })
@@ -30,6 +31,14 @@ export class Invoices implements OnInit {
   uploadMessage = '';
   validationError = '';
   validationMessage = '';
+  lineAccountEdits: Record<string, string> = {};
+  lineAccountErrors: Record<string, string> = {};
+  lineAccountSearches: Record<string, string> = {};
+  editingLineAccountIds = new Set<string>();
+  savingLineAccountIds = new Set<string>();
+  openLineAccountSearches = new Set<string>();
+  sncAccounts: SNCAccount[] = [];
+  sncAccountsError = '';
 
   constructor(
     private invoiceService: InvoiceService,
@@ -38,6 +47,7 @@ export class Invoices implements OnInit {
 
   ngOnInit(): void {
     this.loadInvoices();
+    this.loadSNCAccounts();
   }
 
   get sortedInvoices(): Invoice[] {
@@ -89,6 +99,96 @@ export class Invoices implements OnInit {
           this.selectedInvoiceId = null;
         }
       });
+  }
+
+  loadSNCAccounts(): void {
+    this.sncAccountsError = '';
+    this.invoiceService.getSNCAccounts().subscribe({
+      next: (accounts) => {
+        this.sncAccounts = Array.isArray(accounts) ? accounts : [];
+      },
+      error: () => {
+        this.sncAccounts = [];
+        this.sncAccountsError = 'Não foi possível carregar o plano de contas SNC.';
+      },
+    });
+  }
+
+  getLineAccountLabel(line: InvoiceLine): string {
+    const selectedCode = this.lineAccountEdits[line.id] ?? line.sncAccount?.code ?? line.suggestedSNCAccount;
+    const selectedAccount = this.sncAccounts.find((account) => account.code === selectedCode);
+    return selectedAccount
+      ? `${selectedAccount.code} - ${selectedAccount.description}`
+      : selectedCode;
+  }
+
+  getAssociatedSNCAccountLabel(line: InvoiceLine): string {
+    const associatedCode = line.sncAccount?.code ?? line.suggestedSNCAccount;
+    const associatedAccount = this.sncAccounts.find((account) => account.code === associatedCode);
+    return associatedAccount
+      ? `${associatedAccount.code} - ${associatedAccount.description}`
+      : associatedCode || 'Sem conta associada';
+  }
+
+  getFilteredSNCAccounts(line: InvoiceLine): SNCAccount[] {
+    const terms = this.getAccountSearchTerms(line);
+    if (!terms.length) {
+      return [];
+    }
+
+    return this.sncAccounts
+      .filter((account) => this.matchesAccountSearch(account, terms))
+      .slice(0, 50);
+  }
+
+  getSNCAccountMatchCount(line: InvoiceLine): number {
+    const terms = this.getAccountSearchTerms(line);
+    return terms.length ? this.sncAccounts.filter((account) => this.matchesAccountSearch(account, terms)).length : 0;
+  }
+
+  openSNCAccountSearch(line: InvoiceLine): void {
+    this.openLineAccountSearches.add(line.id);
+  }
+
+  selectSNCAccount(line: InvoiceLine, account: SNCAccount): void {
+    this.lineAccountEdits[line.id] = account.code;
+    this.lineAccountSearches[line.id] = '';
+    this.openLineAccountSearches.delete(line.id);
+    delete this.lineAccountErrors[line.id];
+  }
+
+  editLineAccount(line: InvoiceLine): void {
+    this.lineAccountEdits[line.id] = line.sncAccount?.code ?? line.suggestedSNCAccount;
+    this.lineAccountSearches[line.id] = '';
+    this.editingLineAccountIds.add(line.id);
+    delete this.lineAccountErrors[line.id];
+  }
+
+  cancelLineAccountEdit(line: InvoiceLine): void {
+    this.lineAccountEdits[line.id] = line.sncAccount?.code ?? line.suggestedSNCAccount;
+    this.lineAccountSearches[line.id] = '';
+    this.editingLineAccountIds.delete(line.id);
+    this.openLineAccountSearches.delete(line.id);
+    delete this.lineAccountErrors[line.id];
+  }
+
+  private normalizeAccountSearch(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('pt-PT')
+      .trim();
+  }
+
+  private getAccountSearchTerms(line: InvoiceLine): string[] {
+    return this.normalizeAccountSearch(this.lineAccountSearches[line.id] ?? '')
+      .split(/\s+/)
+      .filter(Boolean);
+  }
+
+  private matchesAccountSearch(account: SNCAccount, terms: string[]): boolean {
+    const searchableValue = this.normalizeAccountSearch(`${account.code} ${account.description}`);
+    return terms.every((term) => searchableValue.includes(term));
   }
 
   onFileSelected(event: Event): void {
@@ -260,9 +360,68 @@ export class Invoices implements OnInit {
     }
   }
 
-  getClassifiedLines(invoice: Invoice): any[] {
+  getClassifiedLines(invoice: Invoice): InvoiceLine[] {
+    if (invoice.classifiedLines?.length) {
+      return invoice.classifiedLines;
+    }
+
     const parsed = this.getParsedRawResponse(invoice);
-    return Array.isArray(parsed?.classified_lines) ? parsed.classified_lines : [];
+    return Array.isArray(parsed?.classified_lines)
+      ? parsed.classified_lines.map((line: any) => ({
+          id: '',
+          originalDescription: typeof line.original_description === 'string' ? line.original_description : '',
+          suggestedSNCAccount: typeof line.suggested_snc_account === 'string' ? line.suggested_snc_account : '',
+          fiscalReasoning: typeof line.fiscal_reasoning === 'string' ? line.fiscal_reasoning : '',
+          baseAmount: line.base_amount ?? 0,
+          vatRate: line.vat_rate ?? 0,
+          deductibleVatThisLine: line.deductible_vat_this_line ?? 0,
+          reviewAlert: line.review_alert === true,
+          confidenceRate: line.confidence_rate ?? 0,
+          reviewAlertReasoning: line.review_alert_reasoning ?? '',
+        }))
+      : [];
+  }
+
+  saveLineAccount(invoice: Invoice, line: InvoiceLine): void {
+    if (this.savingLineAccountIds.has(line.id)) {
+      return;
+    }
+
+    const account = this.lineAccountEdits[line.id] ?? line.suggestedSNCAccount;
+    this.savingLineAccountIds.add(line.id);
+    delete this.lineAccountErrors[line.id];
+
+    this.invoiceService
+      .updateLineAccount(invoice.id, line.id, account)
+      .pipe(finalize(() => {
+        this.savingLineAccountIds.delete(line.id);
+        this.changeDetector.markForCheck();
+      }))
+      .subscribe({
+        next: (updatedLine) => {
+          const selectedAccount = this.sncAccounts.find(
+            (sncAccount) => sncAccount.code === updatedLine.suggestedSNCAccount,
+          ) ?? null;
+          this.invoices = this.invoices.map((currentInvoice) =>
+            currentInvoice.id === invoice.id
+              ? {
+                  ...currentInvoice,
+                  classifiedLines: (currentInvoice.classifiedLines ?? []).map((currentLine) =>
+                    currentLine.id === updatedLine.id
+                      ? { ...currentLine, ...updatedLine, sncAccount: selectedAccount }
+                      : currentLine,
+                  ),
+                }
+              : currentInvoice,
+          );
+          this.lineAccountEdits[line.id] = updatedLine.suggestedSNCAccount;
+          this.editingLineAccountIds.delete(line.id);
+          this.openLineAccountSearches.delete(line.id);
+        },
+        error: () => {
+          this.lineAccountErrors[line.id] = 'Não foi possível guardar a conta SNC. Tente novamente.';
+        },
+      });
   }
 
   getStatusLabel(status: Invoice['status']): string {

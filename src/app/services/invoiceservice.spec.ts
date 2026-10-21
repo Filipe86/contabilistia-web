@@ -45,4 +45,26 @@ describe('InvoiceService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
   });
+
+  it('should send a PATCH request to update a line SNC account', () => {
+    service.updateLineAccount('invoice-1', 'line-1', '6242').subscribe();
+
+    const req = httpTestingController.expectOne('http://localhost:3000/invoices/invoice-1/lines/line-1/account');
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ suggestedSNCAccount: '6242' });
+    req.flush({ id: 'line-1', suggestedSNCAccount: '6242' });
+  });
+
+  it('should fetch the SNC account catalogue', () => {
+    let accounts: { code: string; description: string }[] | undefined;
+    service.getSNCAccounts().subscribe((result) => {
+      accounts = result;
+    });
+
+    const req = httpTestingController.expectOne('http://localhost:3000/invoices/snc-accounts');
+    expect(req.request.method).toBe('GET');
+    req.flush([{ code: '6242', description: 'Combustíveis' }]);
+
+    expect(accounts).toEqual([{ code: '6242', description: 'Combustíveis' }]);
+  });
 });

@@ -188,18 +188,98 @@
 
           <div *ngFor="let line of getClassifiedLines(selectedInvoice); let i = index" class="line-analysis">
             <div class="line-header">
-              <strong>{{ i + 1 }}. {{ line.original_description }}</strong>
-              <span *ngIf="line.review_alert" class="alert-badge warning">Revisão</span>
+              <strong>{{ i + 1 }}. {{ line.originalDescription }}</strong>
+              <span *ngIf="line.reviewAlert" class="alert-badge warning">Revisão</span>
             </div>
 
             <div class="line-meta">
-              <span>Conta SNC: {{ line.suggested_snc_account }}</span>
-              <span>Base: {{ line.base_amount | number: '1.2-2' }} €</span>
-              <span>IVA: {{ line.vat_rate }}%</span>
-              <span>IVA dedutível: {{ line.deductible_vat_this_line | number: '1.2-2' }} €</span>
+              <span>Base: {{ line.baseAmount | number: '1.2-2' }} €</span>
+              <span>IVA: {{ line.vatRate }}%</span>
+              <span>IVA dedutível: {{ line.deductibleVatThisLine | number: '1.2-2' }} €</span>
             </div>
 
-            <p>{{ line.fiscal_reasoning }}</p>
+            <span *ngIf="!line.id" class="line-account-readonly">Conta SNC: {{ line.suggestedSNCAccount }}</span>
+            <div class="line-account-editor" *ngIf="line.id">
+              <label [for]="'line-account-' + line.id">Conta SNC</label>
+              <span class="line-account-current">
+                Conta atualmente associada: <strong>{{ getAssociatedSNCAccountLabel(line) }}</strong>
+              </span>
+              <button
+                *ngIf="!editingLineAccountIds.has(line.id)"
+                type="button"
+                class="line-account-edit-button"
+                [disabled]="savingLineAccountIds.has(line.id) || !sncAccounts.length"
+                (click)="editLineAccount(line)"
+              >
+                Editar conta
+              </button>
+              <ng-container *ngIf="editingLineAccountIds.has(line.id)">
+                <input
+                  [id]="'line-account-' + line.id"
+                  type="search"
+                  autocomplete="off"
+                  [placeholder]="'Pesquisar conta SNC (' + getLineAccountLabel(line) + ')'"
+                  [ngModel]="lineAccountSearches[line.id] ?? ''"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="lineAccountSearches[line.id] = $event; openSNCAccountSearch(line)"
+                  (focus)="openSNCAccountSearch(line)"
+                  [disabled]="savingLineAccountIds.has(line.id) || !sncAccounts.length"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  [attr.aria-expanded]="openLineAccountSearches.has(line.id)"
+                  [attr.aria-controls]="'snc-account-results-' + line.id"
+                >
+                <div
+                  class="snc-account-results"
+                  *ngIf="openLineAccountSearches.has(line.id)"
+                  [id]="'snc-account-results-' + line.id"
+                  role="listbox"
+                >
+                  <button
+                    type="button"
+                    *ngFor="let account of getFilteredSNCAccounts(line)"
+                    role="option"
+                    [attr.aria-selected]="(lineAccountEdits[line.id] ?? line.sncAccount?.code ?? line.suggestedSNCAccount) === account.code"
+                    (click)="selectSNCAccount(line, account)"
+                  >
+                    {{ account.code }} - {{ account.description }}
+                  </button>
+                  <span *ngIf="!lineAccountSearches[line.id]" class="snc-account-search-hint">
+                    Pesquise pelo número da conta ou pela descrição.
+                  </span>
+                  <span *ngIf="lineAccountSearches[line.id] && !getSNCAccountMatchCount(line)" class="snc-account-search-hint">
+                    Nenhuma conta encontrada.
+                  </span>
+                  <span *ngIf="getSNCAccountMatchCount(line) > 50" class="snc-account-search-hint">
+                    A mostrar 50 resultados. Refine a pesquisa.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  class="line-account-cancel-button"
+                  [disabled]="savingLineAccountIds.has(line.id)"
+                  (click)="cancelLineAccountEdit(line)"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  class="line-account-save-button"
+                  [disabled]="savingLineAccountIds.has(line.id) || !sncAccounts.length"
+                  (click)="saveLineAccount(selectedInvoice, line)"
+                >
+                  {{ savingLineAccountIds.has(line.id) ? 'A guardar...' : 'Guardar conta' }}
+                </button>
+              </ng-container>
+              <span class="line-account-feedback error" *ngIf="sncAccountsError" role="alert">
+                {{ sncAccountsError }}
+              </span>
+              <span class="line-account-feedback error" *ngIf="lineAccountErrors[line.id]" role="alert">
+                {{ lineAccountErrors[line.id] }}
+              </span>
+            </div>
+
+            <p>{{ line.fiscalReasoning }}</p>
           </div>
         </div>
 
