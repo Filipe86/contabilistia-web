@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { vi } from 'vitest';
 import { InvoiceService } from '../services/invoiceservice';
 import { Invoice, InvoiceLine } from '../models/invoice.model';
+import { ClientService } from '../services/clientservice';
+import { Client } from '../models/client.model';
 import { Invoices } from './invoices';
 
 describe('Invoices', () => {
@@ -11,14 +13,26 @@ describe('Invoices', () => {
   let fixture: ComponentFixture<Invoices>;
   let invoiceService: {
     deleteInvoice: ReturnType<typeof vi.fn>;
+    associateInvoiceWithClient: ReturnType<typeof vi.fn>;
     getInvoices: ReturnType<typeof vi.fn>;
     getSNCAccounts: ReturnType<typeof vi.fn>;
     updateLineAccount: ReturnType<typeof vi.fn>;
   };
+  let clientService: {
+    activeClientId$: Observable<string>;
+    clients$: Observable<Client[]>;
+    getClients: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
+    clientService = {
+      activeClientId$: of('client-id'),
+      clients$: of([{ id: 'client-id', name: 'Cliente teste', nif: '501964843', createdAt: '' }]),
+      getClients: vi.fn().mockReturnValue(of([{ id: 'client-id', name: 'Cliente teste', nif: '501964843', createdAt: '' }])),
+    };
     invoiceService = {
       deleteInvoice: vi.fn(),
+      associateInvoiceWithClient: vi.fn(),
       getInvoices: vi.fn(),
       getSNCAccounts: vi.fn(),
       updateLineAccount: vi.fn(),
@@ -32,6 +46,7 @@ describe('Invoices', () => {
       of([
         {
           id: 'inv-1',
+          client: { id: 'client-id', name: 'Cliente teste', nif: '501964843' },
           supplier: 'Acme',
           supplierVat: '123456789',
           invoiceDate: '2024-01-15',
@@ -44,7 +59,11 @@ describe('Invoices', () => {
 
     await TestBed.configureTestingModule({
       imports: [Invoices],
-      providers: [provideRouter([]), { provide: InvoiceService, useValue: invoiceService }],
+      providers: [
+        provideRouter([]),
+        { provide: InvoiceService, useValue: invoiceService },
+        { provide: ClientService, useValue: clientService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Invoices);
@@ -58,9 +77,25 @@ describe('Invoices', () => {
   });
 
   it('should load invoices on startup', () => {
-    expect(invoiceService.getInvoices).toHaveBeenCalled();
+    expect(invoiceService.getInvoices).toHaveBeenCalledWith('client-id');
     expect(component.invoices.length).toBe(1);
     expect(component.selectedInvoiceId).toBe('inv-1');
+  });
+
+  it('should summarize pending and validated invoices in the workspace', () => {
+    const validatedInvoice = {
+      ...component.invoices[0],
+      id: 'inv-validated',
+      validationStatus: 'validated' as const,
+      totalDeductibleVat: 5,
+    };
+    component.invoices = [component.invoices[0], validatedInvoice];
+    fixture.detectChanges();
+
+    expect(component.pendingInvoicesCount).toBe(1);
+    expect(component.validatedInvoicesCount).toBe(1);
+    expect(component.deductibleVatTotal).toBe(25);
+    expect(fixture.nativeElement.textContent).toContain('Documentos recebidos');
   });
 
   it('should replace the invoice list when refreshed', () => {

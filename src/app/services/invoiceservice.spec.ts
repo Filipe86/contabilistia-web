@@ -23,19 +23,27 @@ describe('InvoiceService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should return fallback demo invoices when backend is unavailable', () => {
-    let result: any[] | undefined;
-
-    service.getInvoices().subscribe((invoices) => {
-      result = invoices;
+  it('should fetch only invoices belonging to the selected client', () => {
+    let result: unknown;
+    let requestFailed = false;
+    service.getInvoices('client-id').subscribe({
+      next: (invoices) => {
+        result = invoices;
+      },
+      error: () => {
+        requestFailed = true;
+      },
     });
 
-    const req = httpTestingController.expectOne('http://localhost:3000/invoices');
+    const req = httpTestingController.expectOne((request) =>
+      request.url === 'http://localhost:3000/invoices'
+      && request.params.get('clientId') === 'client-id',
+    );
     expect(req.request.headers.get('Cache-Control')).toBe('no-cache');
     req.flush(null, { status: 500, statusText: 'Server Error' });
 
-    expect(result?.length).toBe(1);
-    expect(result?.[0].supplier).toBe('Papelaria e Gestão, Lda.');
+    expect(requestFailed).toBe(true);
+    expect(result).toBeUndefined();
   });
 
   it('should send a DELETE request for an invoice', () => {

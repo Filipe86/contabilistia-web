@@ -1,0 +1,72 @@
+<div class="workspace-shell">
+  <aside class="workspace-sidebar" aria-label="Navegação da área de trabalho">
+    <div class="workspace-brand">
+      <img class="brand-logo" src="/contabilistia-logo.svg" alt="ContabilistIA" />
+    </div>
+
+    <div class="workspace-context">
+      <span>Área de trabalho</span>
+      <strong>Operações fiscais</strong>
+    </div>
+
+    <nav class="workspace-navigation" aria-label="Gestão">
+      <span class="workspace-nav-label">Gestão</span>
+      <a
+        class="workspace-nav-link"
+        routerLink="/backoffice/clients"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        <span aria-hidden="true">♙</span>
+        Clientes
+      </a>
+      <a
+        *ngIf="activeClientId"
+        class="workspace-nav-link"
+        routerLink="/backoffice/documents"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+      >
+        <span aria-hidden="true">▤</span>
+        Documentos
+      </a>
+      <a
+        *ngIf="activeClientId"
+        class="workspace-nav-link"
+        routerLink="/backoffice/vehicles"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        <span aria-hidden="true">▣</span>
+        Frota
+      </a>
+    </nav>
+
+    <div class="workspace-sidebar-footer">
+      <span class="workspace-status-dot" aria-hidden="true"></span>
+      <span>Ambiente de demonstração</span>
+      <a routerLink="/">Voltar ao site</a>
+    </div>
+  </aside>
+
+  <section class="workspace-main">
+    <header class="workspace-topbar">
+      <span>ContabilistIA <span aria-hidden="true">/</span> <strong>Área de trabalho</strong></span>
+      <label *ngIf="clients.length" class="active-client-picker">
+        Cliente ativo
+        <select [ngModel]="activeClientId" (ngModelChange)="selectClient($event)" aria-label="Selecionar cliente ativo">
+          <option *ngFor="let client of clients" [value]="client.id">{{ client.name }} — {{ client.nif }}</option>
+        </select>
+      </label>
+      <span *ngIf="!clients.length" class="workspace-topbar-status">Registe um cliente para começar</span>
+    </header>
+    <p *ngIf="clientsError" class="workspace-client-error" role="alert">{{ clientsError }}</p>
+    <section *ngIf="!canShowWorkspaceContent" class="workspace-client-required">
+      <h1>Selecione um cliente</h1>
+      <p>Registe um cliente ou selecione um cliente ativo para consultar documentos e frota.</p>
+      <a routerLink="/backoffice/clients">Registar ou consultar clientes</a>
+    </section>
+    <router-outlet *ngIf="canShowWorkspaceContent" />
+  </section>
+</div>

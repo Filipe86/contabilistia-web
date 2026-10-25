@@ -1,29 +1,36 @@
-<header class="landing-header demo-header">
-  <nav class="landing-nav demo-nav">
-    <a class="brand-wrap" [routerLink]="['/']">
-      <img class="brand-logo" src="/contabilistia-logo.svg" alt="ContabilistIA, Automação Fiscal Inteligente" />
-    </a>
-
-    <div class="nav-links demo-links">
-      <a [routerLink]="['/']" [fragment]="'features'">Funcionalidades</a>
-      <a [routerLink]="['/']" [fragment]="'benefits'">Benefícios</a>
-      <a [routerLink]="['/']" [fragment]="'process'">Como funciona</a>
-      <a [routerLink]="['/']" [fragment]="'pricing'">Preços</a>
-      <a [routerLink]="['/demo']">Demo</a>
-    </div>
-
-    <a class="nav-cta" [routerLink]="['/demo']">Solicitar demonstração</a>
-  </nav>
-</header>
-
 <div class="invoice-panel">
   <header class="invoice-header">
     <div>
-      <h1>ContabilistIA</h1>
-      <p>Painel de Triagem Fiscal Automática (SNC / CIVA)</p>
+      <span class="workspace-eyebrow">Triagem e validação</span>
+      <h1>Revisão de documentos</h1>
+      <p>Analise classificações, reveja os dados fiscais e valide cada fatura.</p>
     </div>
-    <button type="button" (click)="loadInvoices()">🔄 Atualizar Lista</button>
+    <button type="button" (click)="loadInvoices()">Atualizar lista</button>
   </header>
+
+  <section class="workspace-metrics" aria-label="Resumo da validação">
+    <article class="workspace-metric">
+      <span>Documentos recebidos</span>
+      <strong>{{ invoices.length }}</strong>
+      <small>No espaço de trabalho</small>
+    </article>
+    <article class="workspace-metric pending">
+      <span>Por validar</span>
+      <strong>{{ pendingInvoicesCount }}</strong>
+      <small>Requerem revisão</small>
+    </article>
+    <article class="workspace-metric validated">
+      <span>Validadas</span>
+      <strong>{{ validatedInvoicesCount }}</strong>
+      <small>Revisão concluída</small>
+    </article>
+    <article class="workspace-metric">
+      <span>IVA dedutível</span>
+      <strong>{{ deductibleVatTotal | number: '1.2-2' }} €</strong>
+      <small>Total dos documentos</small>
+    </article>
+  </section>
+  <p *ngIf="loadErrorMessage" class="validation-feedback error" role="alert">{{ loadErrorMessage }}</p>
 
   <section class="upload-panel" aria-labelledby="upload-title">
     <div class="upload-copy">
@@ -31,6 +38,9 @@
       <p>Envie uma imagem da fatura para extrair os dados e classificar as linhas.</p>
     </div>
     <form class="upload-form" (submit)="analyzeInvoice($event)">
+      <p class="active-client" *ngIf="activeClient">
+        Cliente: <strong>{{ activeClient.name }}</strong> — NIF {{ activeClient.nif }}
+      </p>
       <label class="upload-picker">
         <span class="upload-file-copy">
           <strong>{{ selectedFile?.name || 'Escolher imagem' }}</strong>
@@ -43,7 +53,7 @@
           (change)="onFileSelected($event)"
         />
       </label>
-      <button class="analyze-button" type="submit" [disabled]="!selectedFile || isAnalyzing">
+      <button class="analyze-button" type="submit" [disabled]="!selectedFile || !activeClient || isAnalyzing">
         {{ isAnalyzing ? 'A analisar...' : 'Analisar fatura' }}
       </button>
       <p class="upload-feedback error" *ngIf="uploadError" role="alert">{{ uploadError }}</p>
@@ -145,9 +155,14 @@
 
         <div class="detail-grid">
           <div>
+            <strong>Cliente associado</strong>
+            <span>{{ selectedInvoice.client?.name || 'Sem cliente associado' }}</span>
+          </div>
+          <div>
             <strong>Fornecedor</strong>
             <span>{{ selectedInvoice.supplier }}</span>
           </div>
+
           <div>
             <strong>NIF</strong>
             <span>{{ selectedInvoice.supplierVat || 'Sem NIF' }}</span>
@@ -177,6 +192,26 @@
             <span>{{ selectedInvoice.confidenceRate | number: '1.0-2' }}%</span>
           </div>
         </div>
+
+        <section class="invoice-client-association" *ngIf="selectedInvoice.validationStatus !== 'validated'">
+          <label [for]="'client-for-' + selectedInvoice.id">Associar a cliente</label>
+          <select
+            [id]="'client-for-' + selectedInvoice.id"
+            [name]="'client-for-' + selectedInvoice.id"
+            [(ngModel)]="invoiceClientEdits[selectedInvoice.id]"
+          >
+            <option value="" disabled>Selecione um cliente</option>
+            <option *ngFor="let client of clients" [value]="client.id">{{ client.name }} — {{ client.nif }}</option>
+          </select>
+          <button
+            type="button"
+            class="validate-button"
+            [disabled]="!invoiceClientEdits[selectedInvoice.id] || isAssociatingClient"
+            (click)="associateInvoiceWithClient(selectedInvoice)"
+          >
+            {{ isAssociatingClient ? 'A associar...' : 'Guardar cliente' }}
+          </button>
+        </section>
 
         <section class="classification-reason" aria-label="Motivo da classificação">
           <strong>Motivo da classificação</strong>

@@ -1,0 +1,97 @@
+<main class="fleet-page">
+  <header class="fleet-header">
+    <span class="eyebrow">Gestão de frota</span>
+    <h1>Veículos</h1>
+    <p>Adicione e mantenha os dados dos veículos da sua frota.</p>
+  </header>
+
+  <div *ngIf="errorMessage" class="feedback error" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="feedback success" role="status">{{ successMessage }}</div>
+
+  <section class="fleet-layout">
+    <form class="vehicle-form" (ngSubmit)="submitVehicle()" #vehicleForm="ngForm">
+      <div class="form-heading">
+        <div>
+          <span class="eyebrow">{{ editingId ? 'Editar veículo' : 'Novo veículo' }}</span>
+          <h2>{{ editingId ? 'Atualizar dados' : 'Adicionar à frota' }}</h2>
+        </div>
+      </div>
+
+      <p class="active-client" *ngIf="activeClient">
+        Frota de <strong>{{ activeClient.name }}</strong> — NIF {{ activeClient.nif }}
+      </p>
+
+      <label for="registration">Matrícula <span aria-hidden="true">*</span></label>
+      <input
+        id="registration"
+        name="registration"
+        type="text"
+        [(ngModel)]="form.registration"
+        required
+        maxlength="20"
+        autocomplete="off"
+        placeholder="Ex.: 12-AB-34"
+      />
+
+      <label for="engine">Tipo de motor <span aria-hidden="true">*</span></label>
+      <select id="engine" name="engine" [(ngModel)]="form.engine" required>
+        <option *ngFor="let engine of engines" [value]="engine.value">{{ engine.label }}</option>
+      </select>
+
+      <label for="category">Categoria <span aria-hidden="true">*</span></label>
+      <select id="category" name="category" [(ngModel)]="form.category" required>
+        <option value="commercial_3_seats">Comercial (3 lugares)</option>
+      </select>
+
+      <div class="form-actions">
+        <button class="primary-button" type="submit" [disabled]="saving || vehicleForm.invalid || !activeClient">
+          {{ saving ? 'A guardar…' : editingId ? 'Guardar alterações' : 'Adicionar veículo' }}
+        </button>
+        <button *ngIf="editingId" class="secondary-button" type="button" (click)="cancelEdit()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+
+    <section class="vehicle-list" aria-labelledby="vehicle-list-title">
+      <div class="list-heading">
+        <div>
+          <span class="eyebrow">Frota atual</span>
+          <h2 id="vehicle-list-title">Veículos registados</h2>
+        </div>
+        <span class="vehicle-count">{{ vehicles.length }}</span>
+      </div>
+
+      <p *ngIf="loading" class="empty-state">A carregar veículos…</p>
+      <p *ngIf="!loading && !vehicles.length && !errorMessage" class="empty-state">
+        Ainda não existem veículos. Utilize o formulário para adicionar o primeiro.
+      </p>
+
+      <div *ngIf="!loading && vehicles.length" class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Cliente</th>
+              <th>Motor</th>
+              <th>Categoria</th>
+              <th class="actions-heading">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let vehicle of vehicles">
+              <td class="registration-cell">{{ vehicle.registration }}</td>
+              <td>{{ vehicle.client?.name || 'Sem cliente' }}</td>
+              <td>{{ engineLabel(vehicle.engine) }}</td>
+              <td>Comercial (3 lugares)</td>
+              <td class="row-actions">
+                <button class="text-button" type="button" (click)="editVehicle(vehicle)">Editar</button>
+                <button class="text-button danger" type="button" (click)="deleteVehicle(vehicle)">Remover</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>

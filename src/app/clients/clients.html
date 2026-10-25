@@ -1,0 +1,82 @@
+<main class="clients-page">
+  <header>
+    <span class="eyebrow">Gestão</span>
+    <h1>Clientes</h1>
+    <p>Registe os clientes com nome e NIF para associar veículos e documentos.</p>
+  </header>
+
+  <div *ngIf="errorMessage" class="feedback error" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="feedback success" role="status">{{ successMessage }}</div>
+
+  <section class="clients-layout">
+    <form class="client-form" (ngSubmit)="submitClient()" #clientForm="ngForm">
+      <h2>{{ editingId ? 'Editar cliente' : 'Novo cliente' }}</h2>
+      <label for="client-name">Nome <span aria-hidden="true">*</span></label>
+      <input
+        id="client-name"
+        name="name"
+        type="text"
+        [(ngModel)]="form.name"
+        required
+        maxlength="150"
+        autocomplete="organization"
+      />
+
+      <label for="client-nif">NIF <span aria-hidden="true">*</span></label>
+      <input
+        id="client-nif"
+        name="nif"
+        type="text"
+        [(ngModel)]="form.nif"
+        required
+        inputmode="numeric"
+        maxlength="24"
+        autocomplete="off"
+        placeholder="9 dígitos"
+      />
+      <small class="field-hint">Pode introduzir o NIF com espaços ou separadores.</small>
+
+      <div class="form-actions">
+        <button class="primary-button" type="submit" [disabled]="saving || clientForm.invalid">
+          {{ saving ? 'A guardar…' : editingId ? 'Guardar alterações' : 'Registar cliente' }}
+        </button>
+        <button *ngIf="editingId" class="secondary-button" type="button" (click)="cancelEdit()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+
+    <section class="client-list" aria-labelledby="client-list-title">
+      <div class="list-heading">
+        <h2 id="client-list-title">Clientes registados</h2>
+        <span class="client-count">{{ clients.length }}</span>
+      </div>
+      <p *ngIf="loading" class="empty-state">A carregar clientes…</p>
+      <p *ngIf="!loading && !clients.length && !errorMessage" class="empty-state">
+        Ainda não existem clientes. Registe um cliente para começar.
+      </p>
+      <div *ngIf="!loading && clients.length" class="table-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>NIF</th><th class="actions-heading">Ações</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let client of clients">
+              <td>{{ client.name }}</td>
+              <td>{{ client.nif }}</td>
+              <td class="row-actions">
+                <button class="text-button" type="button" (click)="editClient(client)">Editar</button>
+                <button
+                  class="text-button danger"
+                  type="button"
+                  (click)="deleteClient(client)"
+                  [disabled]="deletingId === client.id"
+                >
+                  {{ deletingId === client.id ? 'A remover…' : 'Remover' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>

@@ -10,10 +10,9 @@
         <a href="#benefits">Benefícios</a>
         <a href="#process">Como funciona</a>
         <a href="#pricing">Preços</a>
-        <a [routerLink]="'/demo'">Demo</a>
       </div>
 
-      <a class="nav-cta" [routerLink]="'/demo'">Solicitar demonstração</a>
+      <a class="nav-cta" [routerLink]="'/backoffice/documents'">Entrar na plataforma</a>
     </nav>
   </header>
 
@@ -21,29 +20,28 @@
     <section class="hero-section">
       <div class="hero-copy">
         <span class="eyebrow">IA para contabilidade</span>
-        <h1>Classificação fiscal inteligente para facturas e despesas.</h1>
+        <h1>Software de gestão de faturas e validação fiscal para gabinetes de contabilidade.</h1>
         <p>
-          A ContabilistIA ajuda equipas financeiras a automatizar a triagem de documentos,
-          validar IVA, reduzir erros manuais e manter uma revisão clara por linha e por fornecedor.
+          Automatize a leitura de faturas, organize a classificação SNC e reveja o IVA dedutível
+          numa única plataforma. A decisão final continua nas mãos da sua equipa.
         </p>
 
         <div class="hero-actions">
-          <a [routerLink]="'/demo'" class="primary-btn">Ver demonstração</a>
-          <button type="button" class="secondary-btn">Saiba mais</button>
+          <a href="#features" class="secondary-btn">Explorar funcionalidades</a>
         </div>
 
         <ul class="hero-stats">
           <li>
-            <strong>80%</strong>
-            <span>menos tempo em triagem</span>
+            <strong>SNC</strong>
+            <span>classificação contabilística</span>
           </li>
           <li>
-            <strong>24/7</strong>
-            <span>processamento automatizado</span>
+            <strong>CIVA</strong>
+            <span>apoio à revisão do IVA</span>
           </li>
           <li>
-            <strong>100%</strong>
-            <span>maior controlo fiscal</span>
+            <strong>Por linha</strong>
+            <span>análise transparente</span>
           </li>
         </ul>
       </div>
@@ -86,12 +84,12 @@
       </div>
     </section>
 
-    <section class="trust-bar" aria-label="Indicadores de confiança">
-      <span>Gestão documental</span>
+    <section class="trust-bar" aria-label="Áreas cobertas pela plataforma">
+      <span>Gestão de faturas</span>
       <span>SNC</span>
       <span>CIVA</span>
       <span>IVA dedutível</span>
-      <span>Auditoria</span>
+      <span>Revisão humana</span>
     </section>
 
     <section class="features-section" id="features">
@@ -104,19 +102,19 @@
         <article class="feature-card">
           <span class="feature-icon">⚡</span>
           <h3>Triagem automática</h3>
-          <p>Analisa cada linha da fatura e sugere a classificação adequada com rapidez e consistência.</p>
+          <p>Extrai os dados de cada fatura e sugere a classificação contabilística de cada linha.</p>
         </article>
 
         <article class="feature-card">
           <span class="feature-icon">🧠</span>
           <h3>IA orientada por regras</h3>
-          <p>Combina lógica fiscal, análise documental e revisão humana para reduzir erros e riscos.</p>
+          <p>Combina análise documental e regras fiscais com validação final pela sua equipa.</p>
         </article>
 
         <article class="feature-card">
           <span class="feature-icon">📊</span>
           <h3>Dashboard operacional</h3>
-          <p>Centraliza o histórico, filtros, ordenação e detalhe por documento num único painel.</p>
+          <p>Centraliza documentos, estado de validação e detalhe por fornecedor num único espaço.</p>
         </article>
       </div>
     </section>
@@ -250,7 +248,15 @@
           </tbody>
         </table>
       </div>
-      <p class="pricing-note">Precisa de uma solução à medida? <a [routerLink]="'/demo'">Fale connosco</a>.</p>
+      <p class="pricing-note">Precisa de uma solução à medida? Fale connosco.</p>
+    </section>
+
+    <section class="marketing-cta" aria-labelledby="marketing-cta-title">
+      <div>
+        <span class="eyebrow">Próximo passo</span>
+        <h2 id="marketing-cta-title">Veja como a revisão fiscal pode caber num só fluxo de trabalho.</h2>
+        <p>Explore a área de trabalho e conheça o processo de análise e validação de faturas.</p>
+      </div>
     </section>
 
   </main>

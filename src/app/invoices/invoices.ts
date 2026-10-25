@@ -1,20 +1,28 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Meta, Title } from '@angular/platform-browser';
 import { finalize } from 'rxjs/operators';
 import { InvoiceService } from '../services/invoiceservice';
 import { Invoice, InvoiceLine, SNCAccount } from '../models/invoice.model';
+import { Client } from '../models/client.model';
+import { ClientService } from '../services/clientservice';
 
 @Component({
   selector: 'app-invoices',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './invoices.html',
   styleUrl: './invoices.css',
 })
 export class Invoices implements OnInit {
   invoices: Invoice[] = [];
+  clients: Client[] = [];
+  activeClient: Client | null = null;
+  private activeClientId = '';
+  selectedClientId = '';
+  invoiceClientEdits: Record<string, string> = {};
+  isAssociatingClient = false;
   selectedInvoiceId: string | null = null;
   sortField: 'date' | 'supplier' = 'date';
   sortDirection: 'asc' | 'desc' = 'desc';
@@ -39,15 +47,44 @@ export class Invoices implements OnInit {
   openLineAccountSearches = new Set<string>();
   sncAccounts: SNCAccount[] = [];
   sncAccountsError = '';
+  loadErrorMessage = '';
 
   constructor(
     private invoiceService: InvoiceService,
     private changeDetector: ChangeDetectorRef,
+    private readonly title: Title,
+    private readonly meta: Meta,
+    private readonly clientService: ClientService,
   ) {}
 
   ngOnInit(): void {
-    this.loadInvoices();
+    this.updatePageMetadata();
     this.loadSNCAccounts();
+    this.clientService.clients$.subscribe((clients) => {
+      this.clients = clients;
+      this.activeClient = clients.find((client) => client.id === this.activeClientId) ?? null;
+    });
+    this.clientService.activeClientId$.subscribe((clientId) => {
+      this.activeClientId = clientId;
+      this.selectedClientId = clientId;
+      this.activeClient = this.clients.find((client) => client.id === clientId) ?? null;
+      if (clientId) {
+        this.loadInvoices();
+      } else {
+        this.invoices = [];
+        this.selectedInvoiceId = null;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private updatePageMetadata(): void {
+    this.title.setTitle('Área de trabalho | ContabilistIA');
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Área de trabalho para analisar, classificar e validar faturas e dados fiscais.',
+    });
+    this.meta.updateTag({ name: 'robots', content: 'noindex,nofollow' });
   }
 
   get sortedInvoices(): Invoice[] {
@@ -74,11 +111,27 @@ export class Invoices implements OnInit {
     return this.invoices.filter((invoice) => invoice.validationStatus !== 'validated').length;
   }
 
+  get validatedInvoicesCount(): number {
+    return this.invoices.length - this.pendingInvoicesCount;
+  }
+
+  get deductibleVatTotal(): number {
+    return this.invoices.reduce((total, invoice) => total + (invoice.totalDeductibleVat || 0), 0);
+  }
+
   loadInvoices(preferredInvoiceId?: string): void {
+    if (!this.activeClientId) {
+      this.invoices = [];
+      this.selectedInvoiceId = null;
+      this.isLoading = false;
+      this.loadErrorMessage = '';
+      return;
+    }
     this.isLoading = true;
+    this.loadErrorMessage = '';
 
     this.invoiceService
-      .getInvoices()
+      .getInvoices(this.activeClientId)
       .pipe(
         finalize(() => {
           this.isLoading = false;
@@ -87,8 +140,7 @@ export class Invoices implements OnInit {
       )
       .subscribe({
         next: (data) => {
-          const normalizedInvoices = Array.isArray(data) ? data : [];
-          this.invoices = [...normalizedInvoices];
+          this.invoices = Array.isArray(data) ? [...data] : [];
           this.selectedInvoiceId = this.visibleInvoices.some((invoice) => invoice.id === preferredInvoiceId)
             ? preferredInvoiceId ?? null
             : this.visibleInvoices[0]?.id ?? null;
@@ -97,6 +149,7 @@ export class Invoices implements OnInit {
           console.error('Erro ao carregar faturas:', err);
           this.invoices = [];
           this.selectedInvoiceId = null;
+          this.loadErrorMessage = 'Não foi possível carregar os documentos deste cliente.';
         }
       });
   }
@@ -209,7 +262,10 @@ export class Invoices implements OnInit {
 
   analyzeInvoice(event: Event): void {
     event.preventDefault();
-    if (!this.selectedFile || this.isAnalyzing) {
+    if (!this.selectedFile || this.isAnalyzing || !this.selectedClientId) {
+      if (!this.selectedClientId) {
+        this.uploadError = 'Selecione um cliente antes de analisar o documento.';
+      }
       return;
     }
 
@@ -218,7 +274,7 @@ export class Invoices implements OnInit {
     this.uploadMessage = '';
 
     this.invoiceService
-      .analyzeInvoice(this.selectedFile)
+      .analyzeInvoice(this.selectedFile, this.selectedClientId)
       .pipe(
         finalize(() => {
           this.isAnalyzing = false;
@@ -249,6 +305,8 @@ export class Invoices implements OnInit {
 
   toggleDetails(invoiceId: string): void {
     this.selectedInvoiceId = invoiceId;
+    const invoice = this.invoices.find((item) => item.id === invoiceId);
+    this.invoiceClientEdits[invoiceId] = invoice?.client?.id ?? '';
   }
 
   setValidationFilter(filter: 'pending' | 'all'): void {
@@ -283,8 +341,37 @@ export class Invoices implements OnInit {
           this.validationMessage = 'Fatura validada com sucesso.';
           this.selectedInvoiceId = this.visibleInvoices[0]?.id ?? null;
         },
-        error: () => {
-          this.validationError = 'Não foi possível validar a fatura. Tente novamente.';
+        error: (error) => {
+          this.validationError = error?.error?.message || 'Não foi possível validar a fatura. Tente novamente.';
+        },
+      });
+  }
+
+  associateInvoiceWithClient(invoice: Invoice): void {
+    const clientId = this.invoiceClientEdits[invoice.id] ?? '';
+    if (!clientId || this.isAssociatingClient) {
+      this.validationError = 'Selecione um cliente antes de associar a fatura.';
+      return;
+    }
+
+    this.isAssociatingClient = true;
+    this.validationError = '';
+    this.validationMessage = '';
+    this.invoiceService
+      .associateInvoiceWithClient(invoice.id, clientId)
+      .pipe(finalize(() => {
+        this.isAssociatingClient = false;
+        this.changeDetector.markForCheck();
+      }))
+      .subscribe({
+        next: (updatedInvoice) => {
+          this.invoices = this.invoices.map((current) =>
+            current.id === updatedInvoice.id ? updatedInvoice : current,
+          );
+          this.validationMessage = 'Cliente associado à fatura com sucesso.';
+        },
+        error: (error) => {
+          this.validationError = error?.error?.message || 'Não foi possível associar o cliente à fatura.';
         },
       });
   }
@@ -345,7 +432,10 @@ export class Invoices implements OnInit {
       this.selectedInvoiceId = this.visibleInvoices[0].id;
     }
 
-    return this.visibleInvoices.find((invoice) => invoice.id === this.selectedInvoiceId) ?? this.visibleInvoices[0];
+    const selectedInvoice = this.visibleInvoices.find((invoice) => invoice.id === this.selectedInvoiceId)
+      ?? this.visibleInvoices[0];
+    this.invoiceClientEdits[selectedInvoice.id] ??= selectedInvoice.client?.id ?? '';
+    return selectedInvoice;
   }
 
   getParsedRawResponse(invoice: Invoice): any {

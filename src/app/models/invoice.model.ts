@@ -1,3 +1,5 @@
+import { Client } from './client.model';
+
 export interface InvoiceLine {
   id: string;
   originalDescription: string;
@@ -19,6 +21,7 @@ export interface SNCAccount {
 
 export interface Invoice {
   id: string;
+  client: Client | null;
   supplier: string;
   supplierVat: string;
   invoiceDate: string;

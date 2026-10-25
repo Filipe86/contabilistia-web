@@ -277,6 +277,32 @@
   scroll-margin-top: 120px;
 }
 
+.marketing-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  margin-top: 76px;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 30px;
+  background: linear-gradient(120deg, #eff6ff, #fff);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
+}
+
+.marketing-cta h2 {
+  max-width: 720px;
+  margin: 12px 0 8px;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  letter-spacing: -0.05em;
+}
+
+.marketing-cta p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
 .pricing-table-wrap {
   overflow-x: auto;
   background: white;
@@ -464,6 +490,11 @@
   .benefits-grid,
   .trust-bar {
     grid-template-columns: 1fr;
+  }
+
+  .marketing-cta {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .process-grid {
