@@ -1,0 +1,48 @@
+<main class="stock-page">
+  <header class="stock-header">
+    <span class="eyebrow">Gestão de inventário</span>
+    <h1>Stock atual</h1>
+    <p *ngIf="activeClient">
+      Quantidades registadas nas faturas de <strong>{{ activeClient.name }}</strong>.
+    </p>
+    <p *ngIf="!activeClient">Consulte as entradas de artigos registadas nas faturas do cliente ativo.</p>
+    <button class="refresh-button" type="button" (click)="loadStock()" [disabled]="loading">
+      {{ loading ? 'A atualizar…' : 'Atualizar stock' }}
+    </button>
+  </header>
+
+  <p *ngIf="errorMessage" class="feedback error" role="alert">{{ errorMessage }}</p>
+  <section class="stock-list" aria-labelledby="stock-list-title">
+    <div class="list-heading">
+      <div>
+        <span class="eyebrow">Posição atual</span>
+        <h2 id="stock-list-title">Artigos em stock</h2>
+      </div>
+      <span class="stock-count">{{ stock.length }}</span>
+    </div>
+
+    <p *ngIf="loading" class="empty-state">A carregar stock…</p>
+    <p *ngIf="!loading && !stock.length && !errorMessage" class="empty-state">
+      Ainda não existem artigos com quantidades identificadas nas faturas deste cliente.
+    </p>
+
+    <div *ngIf="!loading && stock.length" class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Artigo</th>
+            <th>Quantidade atual</th>
+            <th>Última entrada</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of stock">
+            <td class="item-description">{{ item.description }}</td>
+            <td>{{ item.quantity | number: '1.0-3' }} {{ item.unit }}</td>
+            <td>{{ item.lastEntryAt | date: 'dd/MM/yyyy' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

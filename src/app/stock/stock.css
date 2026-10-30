@@ -1,0 +1,156 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 30%),
+    linear-gradient(180deg, #f7fafd 0%, #eef4ff 100%);
+  color: #0f172a;
+}
+
+.stock-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 44px 24px 80px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.stock-header {
+  position: relative;
+  margin-bottom: 32px;
+  padding-right: 180px;
+}
+
+.eyebrow {
+  display: inline-block;
+  color: #1d4ed8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stock-header h1 {
+  margin: 8px 0;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  letter-spacing: -0.06em;
+}
+
+.stock-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.refresh-button {
+  position: absolute;
+  top: 16px;
+  right: 0;
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 14px;
+  background: linear-gradient(115deg, var(--brand-navy), var(--brand-blue));
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.stock-list {
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+.list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.stock-list h2 {
+  margin: 7px 0 20px;
+  font-size: 1.25rem;
+  letter-spacing: -0.04em;
+}
+
+.stock-count {
+  display: inline-flex;
+  min-width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 15px 12px;
+}
+
+th {
+  color: #64748b;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.item-description {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.empty-state {
+  margin: 16px 0 4px;
+  padding: 24px 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.feedback {
+  margin: 0 0 18px;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.feedback.error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+  .stock-page {
+    padding: 28px 16px 48px;
+  }
+
+  .stock-header {
+    padding-right: 0;
+  }
+
+  .refresh-button {
+    position: static;
+    margin-top: 16px;
+  }
+}

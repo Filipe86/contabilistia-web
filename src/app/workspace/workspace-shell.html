@@ -41,6 +41,16 @@
         <span aria-hidden="true">▣</span>
         Frota
       </a>
+      <a
+        *ngIf="activeClientId"
+        class="workspace-nav-link"
+        routerLink="/backoffice/stock"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        <span aria-hidden="true">▦</span>
+        Stock
+      </a>
     </nav>
 
     <div class="workspace-sidebar-footer">

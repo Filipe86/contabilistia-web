@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Invoice, InvoiceLine, SNCAccount } from '../models/invoice.model';
+import { StockItem } from '../models/stock.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,13 @@ export class InvoiceService {
 
   getSNCAccounts(): Observable<SNCAccount[]> {
     return this.http.get<SNCAccount[]>(`${this.apiUrl}/snc-accounts`);
+  }
+
+  getCurrentStock(clientId: string): Observable<StockItem[]> {
+    return this.http.get<StockItem[]>(`${this.apiUrl}/stock`, {
+      params: { clientId },
+      headers: { 'Cache-Control': 'no-cache' },
+    });
   }
 
   analyzeInvoice(image: File, clientId: string): Observable<{ invoiceId: string }> {

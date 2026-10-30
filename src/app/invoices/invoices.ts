@@ -365,10 +365,8 @@ export class Invoices implements OnInit {
       }))
       .subscribe({
         next: (updatedInvoice) => {
-          this.invoices = this.invoices.map((current) =>
-            current.id === updatedInvoice.id ? updatedInvoice : current,
-          );
           this.validationMessage = 'Cliente associado à fatura com sucesso.';
+          this.loadInvoices(updatedInvoice.id);
         },
         error: (error) => {
           this.validationError = error?.error?.message || 'Não foi possível associar o cliente à fatura.';

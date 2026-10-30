@@ -4,6 +4,7 @@ import { WorkspaceShell } from './workspace/workspace-shell';
 import { Invoices } from './invoices/invoices';
 import { Vehicles } from './vehicles/vehicles';
 import { Clients } from './clients/clients';
+import { Stock } from './stock/stock';
 
 export const routes: Routes = [
   { path: '', component: LandingPage },
@@ -14,11 +15,13 @@ export const routes: Routes = [
       { path: '', redirectTo: 'documents', pathMatch: 'full' },
       { path: 'documents', component: Invoices },
       { path: 'vehicles', component: Vehicles },
+      { path: 'stock', component: Stock },
       { path: 'clients', component: Clients },
     ],
   },
   { path: 'demo', redirectTo: '/backoffice/documents' },
   { path: 'invoices', redirectTo: '/backoffice/documents' },
   { path: 'vehicles', redirectTo: '/backoffice/vehicles' },
+  { path: 'stock', redirectTo: '/backoffice/stock' },
   { path: '**', redirectTo: '' }
 ];

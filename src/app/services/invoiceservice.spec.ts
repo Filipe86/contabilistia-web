@@ -75,4 +75,31 @@ describe('InvoiceService', () => {
 
     expect(accounts).toEqual([{ code: '6242', description: 'Combustíveis' }]);
   });
+
+  it('should fetch current stock for the selected client', () => {
+    let stock: { description: string; quantity: number; unit: string; lastEntryAt: string }[] | undefined;
+    service.getCurrentStock('client-id').subscribe((result) => {
+      stock = result;
+    });
+
+    const req = httpTestingController.expectOne((request) =>
+      request.url === 'http://localhost:3000/invoices/stock'
+      && request.params.get('clientId') === 'client-id',
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.headers.get('Cache-Control')).toBe('no-cache');
+    req.flush([{
+      description: 'Cabo de rede',
+      quantity: 3,
+      unit: 'unidade',
+      lastEntryAt: '2026-10-20T00:00:00.000Z',
+    }]);
+
+    expect(stock).toEqual([{
+      description: 'Cabo de rede',
+      quantity: 3,
+      unit: 'unidade',
+      lastEntryAt: '2026-10-20T00:00:00.000Z',
+    }]);
+  });
 });

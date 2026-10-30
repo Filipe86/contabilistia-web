@@ -3,6 +3,9 @@ import { Client } from './client.model';
 export interface InvoiceLine {
   id: string;
   originalDescription: string;
+  isStockItem?: boolean;
+  stockQuantity?: number;
+  stockUnit?: string;
   suggestedSNCAccount: string;
   fiscalReasoning: string;
   baseAmount: number;

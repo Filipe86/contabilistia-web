@@ -108,6 +108,23 @@ describe('Invoices', () => {
     expect(component.selectedInvoiceId).toBe('inv-2');
   });
 
+  it('reloads invoices after associating a pending invoice with a client', () => {
+    const updatedInvoice = {
+      ...component.invoices[0],
+      client: { id: 'another-client', name: 'Outro cliente', nif: '501111111', createdAt: '' },
+    };
+    invoiceService.associateInvoiceWithClient.mockReturnValue(of(updatedInvoice));
+    invoiceService.getInvoices.mockReturnValue(of([]));
+    component.invoiceClientEdits[updatedInvoice.id] = 'another-client';
+
+    component.associateInvoiceWithClient(updatedInvoice);
+
+    expect(invoiceService.associateInvoiceWithClient).toHaveBeenCalledWith(updatedInvoice.id, 'another-client');
+    expect(invoiceService.getInvoices).toHaveBeenCalledTimes(2);
+    expect(component.invoices).toEqual([]);
+    expect(component.validationMessage).toBe('Cliente associado à fatura com sucesso.');
+  });
+
   it('should render invoices from an asynchronous response', async () => {
     const response = new Subject<Invoice[]>();
     invoiceService.getInvoices.mockReturnValue(response);
